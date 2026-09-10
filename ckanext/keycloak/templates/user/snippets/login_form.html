@@ -14,23 +14,42 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #}
+{% import 'macros/form.html' as form %}
 
-{% ckan_extends %}
-{% block login_button %}
-
-{% set button_style = h.button_style() %}
-{% if button_style == "google" %}
-    <a class="gbtn btn btn-default" href="{{ h.url_for('keycloak.sso') }}">{{ _('Sign in with Google') }}</a>
-{% elif  button_style == "azure" %}
-    <a class="azurebtn btn btn-defaul" href="{{ h.url_for('keycloak.sso') }}">{{ _('Sign in with AzureAD') }}</a>
-{% else %}
-    <a class="btn btn-primary" href="{{ h.url_for('keycloak.sso') }}">{{ _('SSO') }}</a>
-{% endif %}
-
+{% set username_error = true if error_summary %}
+{% set password_error = true if error_summary %}
 {% set enable_ckan_login = h.enable_internal_login() %}
-{% if enable_ckan_login %}
-    <button class="btn btn-primary" type="submit">{{ _('Login') }}</button>
-{% else%}
-{% endif %}
- 
-{% endblock %}
+
+<form action="{{ action }}" method="post">
+  {{ h.csrf_input() }}
+  {% if enable_ckan_login %}
+    {{ form.errors(errors=error_summary) }}
+
+    {{ form.input('login', label=_("Username or Email"), id='field-login', value="", error=username_error, classes=["control-medium"]) }}
+
+    {{ form.input('password', label=_("Password"), id='field-password', type="password", value="", error=password_error, classes=["control-medium"]) }}
+
+    {{ form.checkbox('remember', label=_("Remember me"), id='field-remember', checked=true, value="63072000") }}
+
+    {% if g.recaptcha_publickey %}
+      {% snippet "user/snippets/recaptcha.html", public_key=g.recaptcha_publickey %}
+    {% endif %}
+  {% else%}
+  {% endif %}
+
+  <div class="form-actions">
+    {% set button_style = h.button_style() %}
+    {% if button_style == "google" %}
+        <a class="gbtn btn btn-default" href="{{ h.url_for('keycloak.sso') }}">{{ _('Sign in with Google') }}</a>
+    {% elif  button_style == "azure" %}
+        <a class="azurebtn btn btn-defaul" href="{{ h.url_for('keycloak.sso') }}">{{ _('Sign in with AzureAD') }}</a>
+    {% else %}
+        <a class="btn btn-primary" href="{{ h.url_for('keycloak.sso') }}">{{ _('SSO') }}</a>
+    {% endif %}
+
+    {% if enable_ckan_login %}
+        <button class="btn btn-primary" type="submit">{{ _('Login') }}</button>
+    {% else%}
+    {% endif %}
+  </div>
+</form>
