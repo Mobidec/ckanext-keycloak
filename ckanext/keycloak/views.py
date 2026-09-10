@@ -7,6 +7,7 @@ from ckan.common import g
 from ckan.views.user import set_repoze_user, RequestResetView
 from ckanext.keycloak.keycloak import KeycloakClient
 import ckanext.keycloak.helpers as helpers
+import ckanext.keycloak.membership as membership_fork
 from os import environ
 
 log = logging.getLogger(__name__)
@@ -56,7 +57,8 @@ def sso_login():
     data = tk.request.args
     token = client.get_token(data['code'], redirect_uri)
     userinfo = client.get_user_info(token)
-    log.info("SSO Login: {}".format(userinfo))
+    keycloak_roles = client.get_keycloak_realm_roles(search_text=membership_fork.rules.keycloak_role_ckan_group_prefix)
+    log.info("SSO Login: {}".format({k: userinfo[k] for k in ["name", "preferred_username", "email", "sub", "email_verified"]}))
     if userinfo:
         user_dict = {
             'name': helpers.ensure_unique_username_from_email(userinfo['preferred_username']),
@@ -77,6 +79,9 @@ def sso_login():
 
         _log_user_into_ckan(response)
         log.info("Logged in success")
+        l_keycloak_roles = [role["name"] for role in keycloak_roles]
+        membership_fork.helpers.update_user_from_keycloak(userinfo, l_keycloak_roles, g.user.id)
+        log.info("Group membership propagated")
         return response
     else:
         return tk.redirect_to(tk.url_for('user.login'))

@@ -4,6 +4,18 @@
 
 ckanext-keycloak is an extension for CKAN, that adds Single Sign On options for CKAN portals. It enables the users to authenticate with [Keycloack](https://www.keycloak.org/) instead of creating a new user account on CKAN.
 
+## Fork
+
+This fork aims to add a mapping between Keycloak roles and CKAN group membership. Group membership is refreshed when user logs in.
+
+Keycloak roles beginning with "CKAN_GROUP_" are linked to CKAN groups. The name of the group must follow. 
+No special characters are allowed. Only alphanumeric and underscores (_) are allowed. 
+The Keycloak role can specify the capacities the user is given on the group by appending "_MEMBER", "_EDITOR" or "_ADMIN" to the role name.
+This extension manages the users in the groups listed in these Keycloak roles. It can add, remove or change group membership of the users. 
+
+__TODO__: please validate before use
+
+
 ## Requirements
 
 **Note**

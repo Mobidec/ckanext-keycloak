@@ -2,6 +2,10 @@
 node_modules
 bower_components
 
+#idea
+.idea/
+*.lnk
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -40,3 +44,16 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# temporary files
+tmp/
+

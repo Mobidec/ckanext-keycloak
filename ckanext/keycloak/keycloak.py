@@ -21,7 +21,8 @@ class KeycloakClient:
         return self.get_keycloak_client().token(grant_type="authorization_code", code=code, redirect_uri=redirect_uri)
 
     def get_user_info(self, token):
-        return self.get_keycloak_client().userinfo(token.get('access_token'))
+        # return self.get_keycloak_client().userinfo(token.get('access_token'))
+        return self.get_keycloak_client().decode_token(token.get('access_token'))
 
     def get_user_groups(self, token):
         return self.get_keycloak_client().userinfo(token).get('groups', [])
@@ -30,3 +31,7 @@ class KeycloakClient:
         return KeycloakAdmin(
             username="admin",
         )
+
+    def get_keycloak_realm_roles(self, search_text:str=None, brief_representation: bool=True):
+        return self.get_keycloak_admin().get_realm_roles(brief_representation=brief_representation, search_text=search_text)
+
