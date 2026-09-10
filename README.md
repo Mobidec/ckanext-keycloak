@@ -13,6 +13,8 @@ No special characters are allowed. Only alphanumeric and underscores (_) are all
 The Keycloak role can specify the capacities the user is given on the group by appending "_MEMBER", "_EDITOR" or "_ADMIN" to the role name.
 This extension manages the users in the groups listed in these Keycloak roles. It can add, remove or change group membership of the users. 
 
+The Keycloak client associated to the CKAN instance must have "view-realms" role. 
+
 __TODO__: please validate before use
 
 

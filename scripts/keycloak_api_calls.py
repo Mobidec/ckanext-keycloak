@@ -103,3 +103,5 @@ if __name__ == '__main__':
     # 3. Remove membership from those where the user does not belong, according to CKAN (if member capacity or lower)
     # 4. Add membership to groups where the user is missing
 
+    print("Test")
+
