@@ -9,7 +9,7 @@ import re
 # header from ckanext.keycloak.views:
 import logging
 
-from flask import Blueprint
+# from flask import Blueprint
 from os import environ
 
 server_url = environ.get('CKANEXT__KEYCLOAK__SERVER_URL')
@@ -20,7 +20,7 @@ client_secret_key = environ.get('CKANEXT__KEYCLOAK__CLIENT_SECRET_KEY')
 
 log = logging.getLogger(__name__)
 
-keycloak = Blueprint('keycloak', __name__, url_prefix='/user')
+# keycloak = Blueprint('keycloak', __name__, url_prefix='/user')
 
 # additional parameter for test:
 keycloak_user = environ.get('CKANEXT__KEYCLOAK__TEST_USER_NAME')
