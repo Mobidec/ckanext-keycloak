@@ -4,6 +4,6 @@ r"""
 Fork used to map Keycloak roles to CKAN group membership
 """
 
-from . import model
+from . import definitions
 from . import rules
 from . import helpers
