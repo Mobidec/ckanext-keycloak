@@ -33,7 +33,7 @@ def keycloak_role_to_ckan(keycloak_role_name: str) -> Tuple[str, CkanCapacity] |
     """
     Naming rule which converts from a keycloak role name to CKAN (group name, capacity) pair
     """
-    keycloak_group_re = f"^{keycloak_role_ckan_group_prefix}(.+)$"
+    keycloak_group_re = f"^{re.escape(keycloak_role_ckan_group_prefix)}(.+)$"
     key_cloak_re_match = re.match(keycloak_group_re, keycloak_role_name)
     if key_cloak_re_match is None:
         return None, None

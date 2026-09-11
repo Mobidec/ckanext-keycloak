@@ -54,8 +54,8 @@ def keycloak_role_to_ckan(keycloak_role_name: str, key_cloak_re_match: str) -> T
 
 if __name__ == '__main__':
     ##% List Keycloak roles beginning with CKAN_GROUP_***
-    keycloak_group_re = f"^{keycloak_role_ckan_group_prefix}(.+)$"
     if keycloak_role_ckan_group_prefix:
+        keycloak_group_re = f"^{re.escape(keycloak_role_ckan_group_prefix)}(.+)$"
         keycloak_admin = KeycloakAdmin(server_url=server_url, client_id=client_id, realm_name=realm_name, client_secret_key=client_secret_key)
         keycloak_realm_roles = keycloak_admin.get_realm_roles(brief_representation=True, search_text=keycloak_role_ckan_group_prefix)
         keycloak_realm_roles_ckan_dict = {}
