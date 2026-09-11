@@ -29,7 +29,7 @@ class KeycloakClient:
 
     def get_keycloak_admin(self):
         return KeycloakAdmin(
-            username="admin",
+            server_url=self.server_url, client_id=self.client_id, realm_name=self.realm_name, client_secret_key=self.client_secret_key
         )
 
     def get_keycloak_realm_roles(self, search_text:str=None, brief_representation: bool=True):
