@@ -3,6 +3,7 @@ import string
 import re
 import random
 import secrets
+from urllib.parse import urlparse
 
 
 import ckan.model as model
@@ -82,3 +83,13 @@ def enable_internal_login():
     return tk.asbool(tk.config.get(
         'ckanext.keycloak.enable_ckan_internal_login',
         environ.get('CKANEXT__KEYCLOAK__CKAN_INTERNAL_LOGIN')))
+
+
+def is_ckan_url(url):
+    target = urlparse(url)
+    site = urlparse(tk.config["ckan.site_url"])
+
+    return (
+        target.hostname
+        and target.hostname.lower() == site.hostname.lower()
+    )
