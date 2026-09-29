@@ -26,6 +26,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       <li>{% link_for _('Log in'), named_route='user.login' %}</li>
     {% else%}
     {% endif %}
-    <li>{% link_for _('SSO'), named_route='user.sso' %}</li>
+    <li>{% link_for _('SSO'), named_route='keycloak.sso' %}</li>
 
 {% endblock %}
