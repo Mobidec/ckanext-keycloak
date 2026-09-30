@@ -59,6 +59,8 @@ def sso_login():
     userinfo = client.get_user_info(token)
     keycloak_roles = client.get_keycloak_realm_roles(search_text=membership_fork.rules.keycloak_role_ckan_group_prefix)
     log.info("SSO Login: {}".format({k: userinfo[k] for k in ["name", "preferred_username", "email", "sub", "email_verified"]}))
+    tk.session["keycloak_refresh_token"] = token.get("refresh_token", None)
+    tk.session.save()
     if userinfo:
         user_dict = {
             'name': helpers.ensure_unique_username_from_email(userinfo['preferred_username']),
@@ -107,6 +109,13 @@ def reset_password():
         h.flash_error('Invalid email address')
         return tk.redirect_to(tk.url_for('user.login'))
     return RequestResetView().post()
+
+def sso_logout():
+    refresh_token = tk.session.get("keycloak_refresh_token")
+    client.revoke_user_session(refresh_token)
+    # 5. Clean up CKAN session tokens regardless of API success
+    tk.session.pop("keycloak_refresh_token", None)
+    tk.session.save()
 
 keycloak.add_url_rule('/sso', view_func=sso)
 keycloak.add_url_rule('/sso_login', view_func=sso_login)
