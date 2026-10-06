@@ -45,6 +45,8 @@ def _log_user_into_ckan(resp):
 
 def sso():
     log.info("SSO Login")
+    global redirect_uri
+
     auth_url = None
     try:
         auth_url = client.get_auth_url(redirect_uri=redirect_uri)
@@ -54,6 +56,7 @@ def sso():
     return tk.redirect_to(auth_url)
 
 def sso_login():
+    global redirect_uri
     data = tk.request.args
     token = client.get_token(data['code'], redirect_uri)
     userinfo = client.get_user_info(token)
