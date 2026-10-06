@@ -3,7 +3,7 @@ from flask import Blueprint
 from ckan.plugins import toolkit as tk
 import ckan.lib.helpers as h
 import ckan.model as model
-from ckan.common import g
+from ckan.common import g, session
 from ckan.views.user import set_repoze_user, RequestResetView
 from ckanext.keycloak.keycloak import KeycloakClient
 import ckanext.keycloak.helpers as helpers
@@ -62,8 +62,9 @@ def sso_login():
     userinfo = client.get_user_info(token)
     keycloak_roles = client.get_keycloak_realm_roles(search_text=membership_fork.rules.keycloak_role_ckan_group_prefix)
     log.info("SSO Login: {}".format({k: userinfo[k] for k in ["name", "preferred_username", "email", "sub", "email_verified"]}))
-    tk.session["keycloak_refresh_token"] = token.get("refresh_token", None)
-    tk.session.save()
+    session["keycloak_refresh_token"] = token.get("refresh_token", None)
+    if hasattr(session, "save"):
+        session.save()
     if userinfo:
         user_dict = {
             'name': helpers.ensure_unique_username_from_email(userinfo['preferred_username']),
@@ -85,7 +86,7 @@ def sso_login():
         _log_user_into_ckan(response)
         log.info("Logged in success")
         l_keycloak_roles = [role["name"] for role in keycloak_roles]
-        membership_fork.helpers.update_user_from_keycloak(userinfo, l_keycloak_roles, g.user.id)
+        membership_fork.helpers.update_user_from_keycloak(userinfo, l_keycloak_roles, g.user_obj.id)
         log.info("Group membership propagated")
 
         if "redirect_uri" in data.keys():
@@ -114,11 +115,12 @@ def reset_password():
     return RequestResetView().post()
 
 def sso_logout():
-    refresh_token = tk.session.get("keycloak_refresh_token")
+    refresh_token = session.get("keycloak_refresh_token")
     client.revoke_user_session(refresh_token)
     # 5. Clean up CKAN session tokens regardless of API success
-    tk.session.pop("keycloak_refresh_token", None)
-    tk.session.save()
+    session.pop("keycloak_refresh_token", None)
+    if hasattr(session, "save"):
+        session.save()
 
 keycloak.add_url_rule('/sso', view_func=sso)
 keycloak.add_url_rule('/sso_login', view_func=sso_login)
