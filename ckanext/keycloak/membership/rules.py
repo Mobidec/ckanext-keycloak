@@ -26,7 +26,7 @@ keycloak_role_ckan_group_prefix = "CKAN_GROUP_"
 In permissive mode, a user which was given higher capacities than those listed by Keycloak roles for a given CKAN group, is left unchanged.
 Strict mode (default) enforces exactly the same capacities as defined in the Keycloak role.
 """
-permissive_mode = tk.config.get('ckanext.keycloak.user_membership_permissive', environ.get('CKANEXT__KEYCLOAK__USER_MEMBERSHIP_PERMISSIVE'))
+permissive_mode = tk.asbool(tk.config.get('ckanext.keycloak.user_membership_permissive', environ.get('CKANEXT__KEYCLOAK__USER_MEMBERSHIP_PERMISSIVE', False)))
 
 """
 Default capacity: capacity used if not specified in the role suffix

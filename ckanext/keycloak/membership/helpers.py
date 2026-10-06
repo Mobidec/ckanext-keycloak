@@ -80,22 +80,26 @@ def _api_package_collaborator_delete(package_id: str, user_id: str) -> List[dict
 def update_user_from_keycloak(keycloak_userinfo: dict, keycloak_roles: List[str], ckan_user_id: str) -> None:
     # A. Propagate Keycloak roles to CKAN groups
     # 1. extract CKAN groups from userinfo
-    keycloak_user_roles = keycloak_userinfo["realm_access"]["roles"]
+    keycloak_user_roles = keycloak_userinfo.get("realm_access", {}).get("roles", [])
     # keycloak_user_groups = userinfo.get("groups", [])
     user_ckan_group_capacity_dict = {}
     for keycloak_role_name in keycloak_user_roles:
         ckan_group_name, required_capacity = rules.keycloak_role_to_ckan(keycloak_role_name)
         if ckan_group_name is not None:
-            previous_capacity = user_ckan_group_capacity_dict.get(ckan_group_name, CkanCapacityExtended.Member)
-            user_ckan_group_capacity_dict[ckan_group_name] = max(required_capacity, previous_capacity)
+            if ckan_group_name in user_ckan_group_capacity_dict:
+                user_ckan_group_capacity_dict[ckan_group_name] = max(required_capacity, user_ckan_group_capacity_dict[ckan_group_name])
+            else:
+                user_ckan_group_capacity_dict[ckan_group_name] = required_capacity
 
     # 2. extract all CKAN groups managed from Keycloak from keycloak_roles
     keycloak_ckan_group_capacity_dict = {}
     for keycloak_role_name in keycloak_roles:
         ckan_group_name, required_capacity = rules.keycloak_role_to_ckan(keycloak_role_name)
         if ckan_group_name is not None:
-            previous_capacity = keycloak_ckan_group_capacity_dict.get(ckan_group_name, CkanCapacityExtended.Member)
-            keycloak_ckan_group_capacity_dict[ckan_group_name] = max(required_capacity, previous_capacity)
+            if ckan_group_name in keycloak_ckan_group_capacity_dict:
+                keycloak_ckan_group_capacity_dict[ckan_group_name] = max(required_capacity, keycloak_ckan_group_capacity_dict[ckan_group_name])
+            else:
+                keycloak_ckan_group_capacity_dict[ckan_group_name] = required_capacity
 
     # 3. Detect and apply changes on groups
     for ckan_group_name, max_capacity in keycloak_ckan_group_capacity_dict.items():
@@ -107,7 +111,18 @@ def update_user_from_keycloak(keycloak_userinfo: dict, keycloak_roles: List[str]
         else:
             group_id = o_ckan_group.id
         group_dict = _api_group_show(group_id, include_users=True)
-        group_users_dict = {user["id"]: user["capacity"] for user in group_dict["users"]}
+        group_users_dict = {}
+        for user in group_dict.get("users", []):
+            cap_str = user.get("capacity")
+            try:
+                cap = CkanCapacityExtended.from_str(cap_str) if cap_str else None
+            except ValueError:
+                cap = None
+            if user.get("id"):
+                group_users_dict[user["id"]] = cap
+            if user.get("name"):
+                group_users_dict[user["name"]] = cap
+
         current_capacity = group_users_dict.get(ckan_user_id, None)
         required_capacity = user_ckan_group_capacity_dict.get(ckan_group_name, None)
         if required_capacity is None:
@@ -137,8 +152,8 @@ def update_user_from_keycloak(keycloak_userinfo: dict, keycloak_roles: List[str]
         package_collaboration_list = _api_package_collaborator_list_for_user(ckan_user_id)
 
         # 2. Compare the groups of each package to the lists
-        keycloak_ckan_groups = set(keycloak_ckan_group_capacity_dict.items())
-        user_ckan_groups = set(user_ckan_group_capacity_dict.items())
+        keycloak_ckan_groups = set(keycloak_ckan_group_capacity_dict.keys())
+        user_ckan_groups = set(user_ckan_group_capacity_dict.keys())
         for package_collaboration_dict in package_collaboration_list:
             package_id = package_collaboration_dict["package_id"]
             collaboration_capacity = package_collaboration_dict["capacity"]

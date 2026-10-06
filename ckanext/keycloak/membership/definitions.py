@@ -16,19 +16,63 @@ class CkanCapacityExtended(IntEnum):
     def __str__(self):
         return self.name.lower()
 
-    @staticmethod
-    def from_str(s):
-        s = s.lower().strip()
+    @classmethod
+    def from_str(cls, s):
+        if isinstance(s, cls):
+            return s
+        if s is None:
+            return None
+        s = str(s).lower().strip()
         if s == "member":
-            return CkanCapacityExtended.Member
+            return cls.Member
         elif s == "editor":
-            return CkanCapacityExtended.Editor
+            return cls.Editor
         elif s == "admin":
-            return CkanCapacityExtended.Admin
+            return cls.Admin
         elif s == "dataset":
-            return CkanCapacityExtended.Dataset
+            return cls.Dataset
         else:
-            raise ValueError(s)
+            raise ValueError(f"Unknown capacity: {s}")
+
+    def __lt__(self, other):
+        if isinstance(other, str):
+            try:
+                other = self.from_str(other)
+            except ValueError:
+                return NotImplemented
+        return super().__lt__(other)
+
+    def __le__(self, other):
+        if isinstance(other, str):
+            try:
+                other = self.from_str(other)
+            except ValueError:
+                return NotImplemented
+        return super().__le__(other)
+
+    def __gt__(self, other):
+        if isinstance(other, str):
+            try:
+                other = self.from_str(other)
+            except ValueError:
+                return NotImplemented
+        return super().__gt__(other)
+
+    def __ge__(self, other):
+        if isinstance(other, str):
+            try:
+                other = self.from_str(other)
+            except ValueError:
+                return NotImplemented
+        return super().__ge__(other)
+
+    def __eq__(self, other):
+        if isinstance(other, str):
+            try:
+                other = self.from_str(other)
+            except ValueError:
+                return False
+        return super().__eq__(other)
 
 
 class DatasetCollaborationCleanupMode(IntEnum):
@@ -39,15 +83,17 @@ class DatasetCollaborationCleanupMode(IntEnum):
     def __str__(self):
         return self.name.lower()
 
-    @staticmethod
-    def from_str(s):
-        s = s.lower().strip()
+    @classmethod
+    def from_str(cls, s):
+        if isinstance(s, cls):
+            return s
+        s = str(s).lower().strip()
         if s == "disabled":
-            return DatasetCollaborationCleanupMode.Disabled
+            return cls.Disabled
         elif s == "restricted":
-            return DatasetCollaborationCleanupMode.Restricted
+            return cls.Restricted
         elif s == "complete":
-            return DatasetCollaborationCleanupMode.Complete
+            return cls.Complete
         else:
-            raise ValueError(s)
+            raise ValueError(f"Unknown cleanup mode: {s}")
 

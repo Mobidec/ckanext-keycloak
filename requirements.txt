@@ -1,2 +1,6 @@
 python-keycloak==7.1.1
 # python-keycloak-client
+
+ckan
+ckanext
+pytest
