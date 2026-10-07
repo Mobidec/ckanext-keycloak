@@ -58,8 +58,8 @@ def sso():
 def sso_login():
     global redirect_uri
     data = tk.request.args
-    log.debug(f"redirect_uri=request.url={tk.request.url}")
-    log.debug(f"args.login_redirect_url={data.get('login_redirect_url', '')}")
+    log.info(f"redirect_uri=request.url={tk.request.url}")
+    log.info(f"args.login_redirect_url={data.get('login_redirect_url', '')}")
     token = client.get_token(data['code'], tk.request.url)
     userinfo = client.get_user_info(token)
     keycloak_roles = client.get_keycloak_realm_roles(search_text=membership_fork.rules.keycloak_role_ckan_group_prefix)
@@ -93,7 +93,7 @@ def sso_login():
 
         if "login_redirect_url" in data.keys():
             request_redirect_url = data['login_redirect_url']
-            log.debug(f"login_redirect_url={request_redirect_url}")
+            log.info(f"login_redirect_url={request_redirect_url}")
             if helpers.is_ckan_url(request_redirect_url):
                 response = tk.redirect_to(request_redirect_url)
         return response
