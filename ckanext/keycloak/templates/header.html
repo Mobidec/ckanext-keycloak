@@ -23,9 +23,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     {% endif %}
     {% set enable_ckan_login = h.enable_internal_login() %}
     {% if enable_ckan_login %}
-      <li>{% link_for _('Local account'), named_route='user.login' %}</li>
+      <li>{% link_for _('Local Log in'), named_route='user.login' %}</li>
     {% else%}
     {% endif %}
-    <li>{% link_for _('Log in'), named_route='keycloak.sso' %}</li>
+    <li>{% link_for _('SSO Log in'), named_route='keycloak.sso' %}</li>
 
 {% endblock %}

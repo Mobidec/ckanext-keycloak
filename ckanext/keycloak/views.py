@@ -63,6 +63,9 @@ def sso_login():
     log.info(f"redirect_uri={redirect_uri}")
     request_redirect_url = data.get('login_redirect_url', None)
     log.info(f"args.login_redirect_url={request_redirect_url}")
+    # get_token compares redirect_uri against the one used in the authentication url
+    # the argument login_redirect_url must be present if it was there previously
+    # reconstruct redirect_uri
     test_redirect_uri = redirect_uri
     if request_redirect_url:
         test_redirect_uri = test_redirect_uri + "?" + urlencode({"login_redirect_url": request_redirect_url})
