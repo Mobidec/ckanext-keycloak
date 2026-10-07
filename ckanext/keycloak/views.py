@@ -89,8 +89,8 @@ def sso_login():
         membership_fork.helpers.update_user_from_keycloak(userinfo, l_keycloak_roles, g.user_obj.id)
         log.info("Group membership propagated")
 
-        if "redirect_url" in data.keys():
-            request_redirect_url = data['redirect_url']
+        if "login_redirect_url" in data.keys():
+            request_redirect_url = data['login_redirect_url']
             if helpers.is_ckan_url(request_redirect_url):
                 response = tk.redirect_to(request_redirect_url)
         return response
