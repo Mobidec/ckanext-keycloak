@@ -78,9 +78,16 @@ def _api_package_collaborator_delete(package_id: str, user_id: str) -> List[dict
 
 
 def update_user_from_keycloak(keycloak_userinfo: dict, keycloak_roles: List[str], ckan_user_id: str) -> None:
+    log.info(f"Updating user '{ckan_user_id}' from Keycloak roles")
+    if rules.ckan_default_capacity == "":
+        # do not propagate any Keycloak role if this was not setup
+        log.info("Canceled because no ckan_default_capacity was configured")
+        return
+
     # A. Propagate Keycloak roles to CKAN groups
     # 1. extract CKAN groups from userinfo
     keycloak_user_roles = keycloak_userinfo.get("realm_access", {}).get("roles", [])
+    log.info(f"User has Keycloak roles: {keycloak_user_roles}")
     # keycloak_user_groups = userinfo.get("groups", [])
     user_ckan_group_capacity_dict = {}
     for keycloak_role_name in keycloak_user_roles:
@@ -90,8 +97,10 @@ def update_user_from_keycloak(keycloak_userinfo: dict, keycloak_roles: List[str]
                 user_ckan_group_capacity_dict[ckan_group_name] = max(required_capacity, user_ckan_group_capacity_dict[ckan_group_name])
             else:
                 user_ckan_group_capacity_dict[ckan_group_name] = required_capacity
+    log.info(f"User has capacities on CKAN groups: {user_ckan_group_capacity_dict}")
 
     # 2. extract all CKAN groups managed from Keycloak from keycloak_roles
+    log.info(f"Full list of Keycloak roles: {keycloak_roles}")
     keycloak_ckan_group_capacity_dict = {}
     for keycloak_role_name in keycloak_roles:
         ckan_group_name, required_capacity = rules.keycloak_role_to_ckan(keycloak_role_name)
@@ -100,6 +109,7 @@ def update_user_from_keycloak(keycloak_userinfo: dict, keycloak_roles: List[str]
                 keycloak_ckan_group_capacity_dict[ckan_group_name] = max(required_capacity, keycloak_ckan_group_capacity_dict[ckan_group_name])
             else:
                 keycloak_ckan_group_capacity_dict[ckan_group_name] = required_capacity
+    log.info(f"Max capacities from overall Keycloak roles: {keycloak_ckan_group_capacity_dict}")
 
     # 3. Detect and apply changes on groups
     for ckan_group_name, max_capacity in keycloak_ckan_group_capacity_dict.items():
