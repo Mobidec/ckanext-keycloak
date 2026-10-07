@@ -123,7 +123,7 @@ def update_user_from_keycloak(keycloak_userinfo: dict, keycloak_roles: List[str]
             if user.get("name"):
                 group_users_dict[user["name"]] = cap
 
-        current_capacity = group_users_dict.get(ckan_user_id, None)
+        current_capacity = CkanCapacityExtended.from_str(group_users_dict.get(ckan_user_id, None))
         required_capacity = user_ckan_group_capacity_dict.get(ckan_group_name, None)
         if required_capacity is None:
             # user should not make part of the group

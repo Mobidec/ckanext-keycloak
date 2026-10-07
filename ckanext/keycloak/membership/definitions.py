@@ -34,46 +34,6 @@ class CkanCapacityExtended(IntEnum):
         else:
             raise ValueError(f"Unknown capacity: {s}")
 
-    def __lt__(self, other):
-        if isinstance(other, str):
-            try:
-                other = self.from_str(other)
-            except ValueError:
-                return NotImplemented
-        return super().__lt__(other)
-
-    def __le__(self, other):
-        if isinstance(other, str):
-            try:
-                other = self.from_str(other)
-            except ValueError:
-                return NotImplemented
-        return super().__le__(other)
-
-    def __gt__(self, other):
-        if isinstance(other, str):
-            try:
-                other = self.from_str(other)
-            except ValueError:
-                return NotImplemented
-        return super().__gt__(other)
-
-    def __ge__(self, other):
-        if isinstance(other, str):
-            try:
-                other = self.from_str(other)
-            except ValueError:
-                return NotImplemented
-        return super().__ge__(other)
-
-    def __eq__(self, other):
-        if isinstance(other, str):
-            try:
-                other = self.from_str(other)
-            except ValueError:
-                return False
-        return super().__eq__(other)
-
 
 class DatasetCollaborationCleanupMode(IntEnum):
     Disabled = 0
