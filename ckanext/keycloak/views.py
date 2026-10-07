@@ -58,7 +58,7 @@ def sso():
 def sso_login():
     global redirect_uri
     data = tk.request.args
-    token = client.get_token(data['code'], redirect_uri)
+    token = client.get_token(data['code'], tk.request.url)
     userinfo = client.get_user_info(token)
     keycloak_roles = client.get_keycloak_realm_roles(search_text=membership_fork.rules.keycloak_role_ckan_group_prefix)
     log.info("SSO Login: {}".format({k: userinfo[k] for k in ["name", "preferred_username", "email", "sub", "email_verified"]}))
