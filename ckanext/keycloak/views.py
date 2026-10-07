@@ -9,6 +9,7 @@ from ckanext.keycloak.keycloak import KeycloakClient
 import ckanext.keycloak.helpers as helpers
 import ckanext.keycloak.membership as membership_fork
 from os import environ
+from urllib.parse import urlencode
 
 log = logging.getLogger(__name__)
 
@@ -58,9 +59,15 @@ def sso():
 def sso_login():
     global redirect_uri
     data = tk.request.args
-    log.info(f"redirect_uri=request.url={tk.request.url}")
-    log.info(f"args.login_redirect_url={data.get('login_redirect_url', '')}")
-    token = client.get_token(data['code'], tk.request.url)
+    log.info(f"request.url={tk.request.url}")
+    log.info(f"redirect_uri={redirect_uri}")
+    request_redirect_url = data.get('login_redirect_url', None)
+    log.info(f"args.login_redirect_url={request_redirect_url}")
+    test_redirect_uri = redirect_uri
+    if request_redirect_url:
+        test_redirect_uri = test_redirect_uri + "?" + urlencode({"login_redirect_url": request_redirect_url})
+    log.info(f"test_redirect_uri={test_redirect_uri}")
+    token = client.get_token(data['code'], test_redirect_uri)
     userinfo = client.get_user_info(token)
     keycloak_roles = client.get_keycloak_realm_roles(search_text=membership_fork.rules.keycloak_role_ckan_group_prefix)
     log.info("SSO Login: {}".format({k: userinfo[k] for k in ["name", "preferred_username", "email", "sub", "email_verified"]}))
@@ -91,8 +98,7 @@ def sso_login():
         membership_fork.helpers.update_user_from_keycloak(userinfo, l_keycloak_roles, g.user_obj.id)
         log.info("Group membership propagated")
 
-        if "login_redirect_url" in data.keys():
-            request_redirect_url = data['login_redirect_url']
+        if request_redirect_url:
             log.info(f"login_redirect_url={request_redirect_url}")
             if helpers.is_ckan_url(request_redirect_url):
                 response = tk.redirect_to(request_redirect_url)
