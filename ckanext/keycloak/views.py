@@ -86,9 +86,9 @@ def sso_login():
         log.info("Group membership propagated")
 
         if "redirect_uri" in data.keys():
-            redirect_uri = data['redirect_uri']
-            if helpers.is_ckan_url(redirect_uri):
-                response = tk.redirect_to(redirect_uri)
+            request_redirect_uri = data['redirect_uri']
+            if helpers.is_ckan_url(request_redirect_uri):
+                response = tk.redirect_to(request_redirect_uri)
         return response
     else:
         return tk.redirect_to(tk.url_for('user.login'))
