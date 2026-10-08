@@ -14,10 +14,16 @@ import ckan.plugins.toolkit as tk
 log = logging.getLogger(__name__)
 
 
-def _api_group_create(group_name: str):
+def _get_admin_context():
     context = {
-        u'ignore_auth': True,
+        'model': tk.get_model(),
+        'session': tk.get_model().Session,
+        'user': 'site_user',      # Acts as the system user
+        'ignore_auth': True       # Bypasses NotAuthorized exceptions
     }
+
+def _api_group_create(group_name: str):
+    context = _get_admin_context()
     groupinfo = {"name": group_name, "description": "Created from Keycloak"}
     created_group_dict = tk.get_action(
         u'group_create'
@@ -25,9 +31,7 @@ def _api_group_create(group_name: str):
     return created_group_dict
 
 def _api_group_show(group_id: str, include_users: bool = True):
-    context = {
-        u'ignore_auth': True,
-    }
+    context = _get_admin_context()
     args = {"id": group_id, "include_users": include_users}
     group_dict = tk.get_action(
         u'group_show'
@@ -35,9 +39,7 @@ def _api_group_show(group_id: str, include_users: bool = True):
     return group_dict
 
 def _api_group_member_create(group_id: str, username: str, capacity: str):
-    context = {
-        u'ignore_auth': True,
-    }
+    context = _get_admin_context()
     args = {"id": group_id, "username": username, "role": capacity}
     group_dict = tk.get_action(
         u'group_member_create'
@@ -45,9 +47,7 @@ def _api_group_member_create(group_id: str, username: str, capacity: str):
     return group_dict
 
 def _api_group_member_delete(group_id: str, username: str):
-    context = {
-        u'ignore_auth': True,
-    }
+    context = _get_admin_context()
     args = {"id": group_id, "username": username}
     group_dict = tk.get_action(
         u'group_member_delete'
@@ -55,9 +55,7 @@ def _api_group_member_delete(group_id: str, username: str):
     return group_dict
 
 def _api_package_collaborator_list_for_user(user_id: str, capacity:str = None) -> List[Dict[str, str]]:
-    context = {
-        u'ignore_auth': True,
-    }
+    context = _get_admin_context()
     args = {"id": user_id}
     if capacity is not None:
         args["capacity"] = capacity
@@ -67,9 +65,7 @@ def _api_package_collaborator_list_for_user(user_id: str, capacity:str = None) -
     return package_collaboration_list
 
 def _api_package_collaborator_delete(package_id: str, user_id: str) -> List[dict]:
-    context = {
-        u'ignore_auth': True,
-    }
+    context = _get_admin_context()
     args = {"id": package_id, "user_id": user_id}
     _ = tk.get_action(
         u'package_collaborator_delete'
