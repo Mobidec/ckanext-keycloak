@@ -22,60 +22,52 @@ def _get_admin_context():
     context = {
         'model': model,
         'session': model.Session,
-        'user': site_user,        # Acts as the system user
+        'user': site_user,         # Acts as the system user
         'ignore_auth': True,       # Bypasses NotAuthorized exceptions
         'auth_user_obj': model.User.get(site_user),  # Some actions look directly for the user object
     }
     return context
 
-def _api_group_create(group_name: str):
+def _ckan_admin_action_call(action_name: str, data_dict: dict):
     context = _get_admin_context()
-    groupinfo = {"name": group_name, "description": "Created from Keycloak"}
-    created_group_dict = tk.get_action(
-        u'group_create'
-    )(context, groupinfo)
+    try:
+        response = tk.get_action(action_name)(context, data_dict)
+        model.Session.commit()
+        return response
+    except tk.ValidationError as e:
+        model.Session.rollback()
+        log.error(f"{action_name} error: {e}")
+
+def _api_group_create(group_name: str):
+    data_dict = {"name": group_name, "description": "Created from Keycloak"}
+    created_group_dict = _ckan_admin_action_call(u'group_create', data_dict)
     return created_group_dict
 
 def _api_group_show(group_id: str, include_users: bool = True):
-    context = _get_admin_context()
-    args = {"id": group_id, "include_users": include_users}
-    group_dict = tk.get_action(
-        u'group_show'
-    )(context, args)
+    data_dict = {"id": group_id, "include_users": include_users}
+    group_dict = _ckan_admin_action_call(u'group_show', data_dict)
     return group_dict
 
 def _api_group_member_create(group_id: str, username: str, capacity: str):
-    context = _get_admin_context()
-    args = {"id": group_id, "username": username, "role": capacity}
-    group_dict = tk.get_action(
-        u'group_member_create'
-    )(context, args)
+    data_dict = {"id": group_id, "username": username, "role": capacity}
+    group_dict = _ckan_admin_action_call(u'group_member_create', data_dict)
     return group_dict
 
 def _api_group_member_delete(group_id: str, username: str):
-    context = _get_admin_context()
-    args = {"id": group_id, "username": username}
-    group_dict = tk.get_action(
-        u'group_member_delete'
-    )(context, args)
+    data_dict = {"id": group_id, "username": username}
+    group_dict = _ckan_admin_action_call(u'group_member_delete', data_dict)
     return group_dict
 
 def _api_package_collaborator_list_for_user(user_id: str, capacity:str = None) -> List[Dict[str, str]]:
-    context = _get_admin_context()
-    args = {"id": user_id}
+    data_dict = {"id": user_id}
     if capacity is not None:
-        args["capacity"] = capacity
-    package_collaboration_list = tk.get_action(
-        u'package_collaborator_list_for_user'
-    )(context, args)
+        data_dict["capacity"] = capacity
+    package_collaboration_list = _ckan_admin_action_call(u'package_collaborator_list_for_user', data_dict)
     return package_collaboration_list
 
 def _api_package_collaborator_delete(package_id: str, user_id: str) -> List[dict]:
-    context = _get_admin_context()
-    args = {"id": package_id, "user_id": user_id}
-    _ = tk.get_action(
-        u'package_collaborator_delete'
-    )(context, args)
+    data_dict = {"id": package_id, "user_id": user_id}
+    _ = _ckan_admin_action_call(u'package_collaborator_delete', data_dict)
     return _
 
 
