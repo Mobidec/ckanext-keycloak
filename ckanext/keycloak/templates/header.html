@@ -18,9 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 {% ckan_extends %}
 {% block header_account_notlogged %}
 
-    <li>{% link_for _('Log in'), named_route='user.login' %}</li>
     {% if h.check_access('user_create') %}
       <li>{% link_for _('Register'), named_route='user.register', class_='sub' %}</li>
     {% endif %}
+    {% set enable_ckan_login = h.enable_internal_login() %}
+    {% if enable_ckan_login %}
+      <li>{% link_for _('Local Log in'), named_route='user.login' %}</li>
+    {% else%}
+    {% endif %}
+    <li>{% link_for _('SSO Log in'), named_route='keycloak.sso' %}</li>
 
 {% endblock %}

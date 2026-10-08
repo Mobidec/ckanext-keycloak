@@ -3,11 +3,13 @@ from flask import Blueprint
 from ckan.plugins import toolkit as tk
 import ckan.lib.helpers as h
 import ckan.model as model
-from ckan.common import g
+from ckan.common import g, session
 from ckan.views.user import set_repoze_user, RequestResetView
 from ckanext.keycloak.keycloak import KeycloakClient
 import ckanext.keycloak.helpers as helpers
+import ckanext.keycloak.membership as membership_fork
 from os import environ
+from urllib.parse import urlencode
 
 log = logging.getLogger(__name__)
 
@@ -44,6 +46,8 @@ def _log_user_into_ckan(resp):
 
 def sso():
     log.info("SSO Login")
+    global redirect_uri
+
     auth_url = None
     try:
         auth_url = client.get_auth_url(redirect_uri=redirect_uri)
@@ -53,10 +57,26 @@ def sso():
     return tk.redirect_to(auth_url)
 
 def sso_login():
+    global redirect_uri
     data = tk.request.args
-    token = client.get_token(data['code'], redirect_uri)
+    log.info(f"request.url={tk.request.url}")
+    log.info(f"redirect_uri={redirect_uri}")
+    request_redirect_url = data.get('login_redirect_url', None)
+    log.info(f"args.login_redirect_url={request_redirect_url}")
+    # get_token compares redirect_uri against the one used in the authentication url
+    # the argument login_redirect_url must be present if it was there previously
+    # reconstruct redirect_uri
+    test_redirect_uri = redirect_uri
+    if request_redirect_url:
+        test_redirect_uri = test_redirect_uri + "?" + urlencode({"login_redirect_url": request_redirect_url})
+    log.info(f"test_redirect_uri={test_redirect_uri}")
+    token = client.get_token(data['code'], test_redirect_uri)
     userinfo = client.get_user_info(token)
-    log.info("SSO Login: {}".format(userinfo))
+    keycloak_roles = client.get_keycloak_realm_roles(search_text=membership_fork.rules.keycloak_role_ckan_group_prefix)
+    log.info("SSO Login: {}".format({k: userinfo[k] for k in ["name", "preferred_username", "email", "sub", "email_verified"]}))
+    session["keycloak_refresh_token"] = token.get("refresh_token", None)
+    if hasattr(session, "save"):
+        session.save()
     if userinfo:
         user_dict = {
             'name': helpers.ensure_unique_username_from_email(userinfo['preferred_username']),
@@ -77,6 +97,14 @@ def sso_login():
 
         _log_user_into_ckan(response)
         log.info("Logged in success")
+        l_keycloak_roles = [role["name"] for role in keycloak_roles]
+        membership_fork.helpers.update_user_from_keycloak(userinfo, l_keycloak_roles, g.user_obj.id)
+        log.info("Group membership propagated")
+
+        if request_redirect_url:
+            log.info(f"login_redirect_url={request_redirect_url}")
+            if helpers.is_ckan_url(request_redirect_url):
+                response = tk.redirect_to(request_redirect_url)
         return response
     else:
         return tk.redirect_to(tk.url_for('user.login'))
@@ -97,6 +125,14 @@ def reset_password():
         h.flash_error('Invalid email address')
         return tk.redirect_to(tk.url_for('user.login'))
     return RequestResetView().post()
+
+def sso_logout():
+    refresh_token = session.get("keycloak_refresh_token")
+    client.revoke_user_session(refresh_token)
+    # 5. Clean up CKAN session tokens regardless of API success
+    session.pop("keycloak_refresh_token", None)
+    if hasattr(session, "save"):
+        session.save()
 
 keycloak.add_url_rule('/sso', view_func=sso)
 keycloak.add_url_rule('/sso_login', view_func=sso_login)

@@ -1,7 +1,7 @@
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 
-from ckanext.keycloak.views import get_blueprint
+from ckanext.keycloak.views import get_blueprint, sso_logout
 from ckanext.keycloak import helpers as h
 
 
@@ -9,6 +9,7 @@ class KeycloakPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.IBlueprint)
     plugins.implements(plugins.ITemplateHelpers)
+    plugins.implements(plugins.IAuthenticator, inherit=True)
 
     # IConfigurer
 
@@ -27,3 +28,9 @@ class KeycloakPlugin(plugins.SingletonPlugin):
             'button_style': h.button_style,
             'enable_internal_login': h.enable_internal_login,
         }
+
+    # IAuthenticator
+    def logout(self):
+        sso_logout()
+        if toolkit.check_ckan_version(min_version='2.10'):
+            toolkit.logout_user()
