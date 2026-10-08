@@ -18,11 +18,13 @@ def _get_admin_context():
     """
     Administrative actions require a specific context (do not use the context of the authenticated user).
     """
+    site_user = tk.config.get('ckan.site_id', 'site_user')
     context = {
         'model': model,
         'session': model.Session,
-        'user': 'site_user',      # Acts as the system user
-        'ignore_auth': True       # Bypasses NotAuthorized exceptions
+        'user': site_user,        # Acts as the system user
+        'ignore_auth': True,       # Bypasses NotAuthorized exceptions
+        'auth_user_obj': model.User.get(site_user),  # Some actions look directly for the user object
     }
     return context
 
