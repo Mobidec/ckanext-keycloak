@@ -15,12 +15,16 @@ log = logging.getLogger(__name__)
 
 
 def _get_admin_context():
+    """
+    Administrative actions require a specific context (do not use the context of the authenticated user).
+    """
     context = {
-        'model': tk.get_model(),
-        'session': tk.get_model().Session,
+        'model': model,
+        'session': model.Session,
         'user': 'site_user',      # Acts as the system user
         'ignore_auth': True       # Bypasses NotAuthorized exceptions
     }
+    return context
 
 def _api_group_create(group_name: str):
     context = _get_admin_context()
