@@ -32,10 +32,10 @@ def _ckan_admin_action_call(action_name: str, data_dict: dict):
     context = _get_admin_context()
     try:
         response = tk.get_action(action_name)(context, data_dict)
-        model.Session.commit()
+        # model.Session.commit()
         return response
     except tk.ValidationError as e:
-        model.Session.rollback()
+        # model.Session.rollback()
         log.error(f"{action_name} error: {e}")
 
 def _api_group_create(group_name: str):
