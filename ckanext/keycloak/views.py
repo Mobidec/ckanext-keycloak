@@ -4,7 +4,7 @@ from ckan.plugins import toolkit as tk
 import ckan.lib.helpers as h
 import ckan.model as model
 from ckan.common import g, session
-from ckan.views.user import set_repoze_user, RequestResetView
+from ckan.views.user import RequestResetView
 from ckanext.keycloak.keycloak import KeycloakClient
 import ckanext.keycloak.helpers as helpers
 import ckanext.keycloak.membership as membership_fork
@@ -40,6 +40,7 @@ def _log_user_into_ckan(resp):
         user_id = "{},1".format(g.user_obj.id)
     else:
         user_id = g.user
+    from ckan.views.user import set_repoze_user
     set_repoze_user(user_id, resp)
 
     log.info(u'User {0}<{1}> logged in successfully'.format(g.user_obj.name, g.user_obj.email))
